@@ -38,6 +38,7 @@ namespace Diligent
 
 struct IRenderDevice;
 struct IDeviceContext;
+struct IRenderStateCache;
 struct SwapChainDesc;
 enum TEXTURE_FORMAT : Uint16;
 enum SURFACE_TRANSFORM : Uint32;
@@ -69,6 +70,12 @@ struct ImGuiDiligentCreateInfo
     static constexpr Uint32 DefaultInitialIBSize = 2048;
 
     IRenderDevice* pDevice = nullptr;
+
+    /// An optional render state cache.
+
+    /// When not null, the renderer creates its shaders and pipeline state through the cache
+    /// rather than directly through the render device.
+    IRenderStateCache* pStateCache = nullptr;
 
     TEXTURE_FORMAT BackBufferFmt  = {};
     TEXTURE_FORMAT DepthBufferFmt = {};

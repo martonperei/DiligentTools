@@ -33,6 +33,7 @@
 #include "MapHelper.hpp"
 #include "GraphicsAccessories.hpp"
 #include "ScopedDebugGroup.hpp"
+#include "RenderStateCache.hpp"
 
 namespace Diligent
 {
@@ -491,6 +492,7 @@ fragment PSOut ps_main(VSOut in [[stage_in]],
 ImGuiDiligentRenderer::ImGuiDiligentRenderer(const ImGuiDiligentCreateInfo& CI) :
     // clang-format off
     m_pDevice            {CI.pDevice},
+    m_pStateCache        {CI.pStateCache},
     m_BackBufferFmt      {CI.BackBufferFmt},
     m_DepthBufferFmt     {CI.DepthBufferFmt},
     m_VertexBufferSize   {CI.InitialVertexBufferSize},
@@ -576,6 +578,8 @@ void ImGuiDiligentRenderer::CreateDeviceObjects()
         ShaderCI.Macros = {Macros, _countof(Macros)};
     }
 
+    RenderDeviceWithCache_N Device{m_pDevice, m_pStateCache};
+
     const RENDER_DEVICE_TYPE DeviceType = m_pDevice->GetDeviceInfo().Type;
 
     RefCntAutoPtr<IShader> pVS;
@@ -611,7 +615,7 @@ void ImGuiDiligentRenderer::CreateDeviceObjects()
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        m_pDevice->CreateShader(ShaderCI, &pVS);
+        pVS = Device.CreateShader(ShaderCI);
     }
 
     RefCntAutoPtr<IShader> pPS;
@@ -655,7 +659,7 @@ void ImGuiDiligentRenderer::CreateDeviceObjects()
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        m_pDevice->CreateShader(ShaderCI, &pPS);
+        pPS = Device.CreateShader(ShaderCI);
     }
 
     GraphicsPipelineStateCreateInfo PSOCreateInfo;
@@ -713,7 +717,7 @@ void ImGuiDiligentRenderer::CreateDeviceObjects()
     PSOCreateInfo.PSODesc.ResourceLayout.ImmutableSamplers    = ImtblSamplers;
     PSOCreateInfo.PSODesc.ResourceLayout.NumImmutableSamplers = _countof(ImtblSamplers);
 
-    m_pDevice->CreateGraphicsPipelineState(PSOCreateInfo, &m_pPSO);
+    m_pPSO = Device.CreateGraphicsPipelineState(PSOCreateInfo);
 
     {
         BufferDesc BuffDesc;
