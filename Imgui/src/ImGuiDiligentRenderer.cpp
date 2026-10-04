@@ -701,8 +701,9 @@ void ImGuiDiligentRenderer::CreateDeviceObjects()
 
     ShaderResourceVariableDesc Variables[] =
         {
+            {SHADER_TYPE_VERTEX, "Constants", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
             {SHADER_TYPE_PIXEL, "Texture", SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC} //
-        };
+    };
     PSOCreateInfo.PSODesc.ResourceLayout.Variables    = Variables;
     PSOCreateInfo.PSODesc.ResourceLayout.NumVariables = _countof(Variables);
 
@@ -727,10 +728,9 @@ void ImGuiDiligentRenderer::CreateDeviceObjects()
         BuffDesc.CPUAccessFlags = CPU_ACCESS_WRITE;
         m_pDevice->CreateBuffer(BuffDesc, nullptr, &m_pVertexConstantBuffer);
     }
-    m_pPSO->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants")->Set(m_pVertexConstantBuffer);
-
     m_pSRB.Release();
     m_pPSO->CreateShaderResourceBinding(&m_pSRB, true);
+    m_pSRB->GetVariableByName(SHADER_TYPE_VERTEX, "Constants")->Set(m_pVertexConstantBuffer);
     m_pTextureVar = m_pSRB->GetVariableByName(SHADER_TYPE_PIXEL, "Texture");
     VERIFY_EXPR(m_pTextureVar != nullptr);
 }
