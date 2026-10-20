@@ -33,6 +33,7 @@
 #include "MapHelper.hpp"
 #include "GraphicsAccessories.hpp"
 #include "ScopedDebugGroup.hpp"
+#include "RenderStateCache.hpp"
 
 namespace Diligent
 {
@@ -491,6 +492,7 @@ fragment PSOut ps_main(VSOut in [[stage_in]],
 ImGuiDiligentRenderer::ImGuiDiligentRenderer(const ImGuiDiligentCreateInfo& CI) :
     // clang-format off
     m_pDevice                   {CI.pDevice},
+    m_pStateCache               {CI.pStateCache},
     m_DefaultBackBufferFmt      {CI.BackBufferFmt},
     m_DefaultDepthBufferFmt     {CI.DepthBufferFmt},
     m_VertexBufferSize          {CI.InitialVertexBufferSize},
@@ -635,6 +637,8 @@ ImGuiDiligentRenderer::PipelineData& ImGuiDiligentRenderer::GetPipeline(const Im
         ShaderCI.Macros = {Macros, _countof(Macros)};
     }
 
+    RenderDeviceWithCache_N Device{m_pDevice, m_pStateCache};
+
     const RENDER_DEVICE_TYPE DeviceType = m_pDevice->GetDeviceInfo().Type;
 
     RefCntAutoPtr<IShader> pVS;
@@ -670,7 +674,7 @@ ImGuiDiligentRenderer::PipelineData& ImGuiDiligentRenderer::GetPipeline(const Im
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        m_pDevice->CreateShader(ShaderCI, &pVS);
+        pVS = Device.CreateShader(ShaderCI);
     }
 
     RefCntAutoPtr<IShader> pPS;
@@ -706,7 +710,7 @@ ImGuiDiligentRenderer::PipelineData& ImGuiDiligentRenderer::GetPipeline(const Im
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        m_pDevice->CreateShader(ShaderCI, &pPS);
+        pPS = Device.CreateShader(ShaderCI);
     }
 
     GraphicsPipelineStateCreateInfo PSOCreateInfo;
@@ -765,7 +769,7 @@ ImGuiDiligentRenderer::PipelineData& ImGuiDiligentRenderer::GetPipeline(const Im
     PSOCreateInfo.PSODesc.ResourceLayout.ImmutableSamplers    = ImtblSamplers;
     PSOCreateInfo.PSODesc.ResourceLayout.NumImmutableSamplers = _countof(ImtblSamplers);
 
-    m_pDevice->CreateGraphicsPipelineState(PSOCreateInfo, &Pipeline.PSO);
+    Pipeline.PSO = Device.CreateGraphicsPipelineState(PSOCreateInfo);
 
     return Pipeline;
 }
