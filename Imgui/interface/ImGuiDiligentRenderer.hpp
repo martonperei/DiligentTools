@@ -41,6 +41,7 @@ namespace Diligent
 {
 
 struct IRenderDevice;
+struct IRenderStateCache;
 struct IDeviceContext;
 struct IBuffer;
 struct IPipelineState;
@@ -97,6 +98,7 @@ private:
 
 private:
     RefCntAutoPtr<IRenderDevice>          m_pDevice;
+    RefCntAutoPtr<IRenderStateCache>      m_pStateCache;
     RefCntAutoPtr<IBuffer>                m_pVB;
     RefCntAutoPtr<IBuffer>                m_pIB;
     RefCntAutoPtr<IBuffer>                m_pVertexConstantBuffer;
